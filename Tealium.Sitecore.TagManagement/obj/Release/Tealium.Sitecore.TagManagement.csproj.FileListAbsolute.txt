@@ -1,0 +1,1 @@
+c:\dev\Tealium.Sitecore.TagManagement\obj\Release\Tealium.Sitecore.TagManagement.csprojResolveAssemblyReference.cache

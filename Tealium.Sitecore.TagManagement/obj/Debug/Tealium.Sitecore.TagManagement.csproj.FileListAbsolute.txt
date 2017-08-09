@@ -1,0 +1,5 @@
+c:\dev\Tealium.Sitecore.TagManagement\bin\Debug\Tealium.Sitecore.TagManagement.dll
+c:\dev\Tealium.Sitecore.TagManagement\bin\Debug\Tealium.Sitecore.TagManagement.pdb
+c:\dev\Tealium.Sitecore.TagManagement\obj\Debug\Tealium.Sitecore.TagManagement.csprojResolveAssemblyReference.cache
+c:\dev\Tealium.Sitecore.TagManagement\obj\Debug\Tealium.Sitecore.TagManagement.dll
+c:\dev\Tealium.Sitecore.TagManagement\obj\Debug\Tealium.Sitecore.TagManagement.pdb

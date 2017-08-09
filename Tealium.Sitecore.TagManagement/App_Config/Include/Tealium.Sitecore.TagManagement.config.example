@@ -1,0 +1,31 @@
+﻿<!--
+Purpose: This include file contains settings for the Tealium.Sitecore.TagManagement sitecore module
+-->
+<configuration xmlns:patch="http://www.sitecore.net/xmlconfig/">
+  <sitecore>
+    <eventsx>
+      <event name="publish:end">
+        <handler type="Tealium.Sitecore.TagManagement.Events.PublishEnd, Tealium.Sitecore.TagManagement" method="Refresh" />
+      </event>
+      <event name="publish:end:remote">
+        <handler type="Tealium.Sitecore.TagManagement.Events.PublishEnd, Tealium.Sitecore.TagManagement" method="Refresh" />
+      </event>
+
+      <event name="publish:complete">
+        <handler type="Tealium.Sitecore.TagManagement.Events.PublishEnd, Tealium.Sitecore.TagManagement" method="Refresh" />
+      </event>
+      <event name="publish:complete:remote">
+        <handler type="Tealium.Sitecore.TagManagement.Events.PublishEnd, Tealium.Sitecore.TagManagement" method="Refresh" />
+      </event>
+    </eventsx>
+
+    <settings>
+      <setting name="Tealium.DataProvider" value="Tealium.Sitecore.TagManagement.Data.UtagDataProvider, Tealium.Sitecore.TagManagement"></setting>
+      <setting name="Tealium.MappingsProvider" value="Tealium.Sitecore.TagManagement.Mappings.TealiumMappingsProvider, Tealium.Sitecore.TagManagement"></setting>
+      <setting name="Tealium.TealiumSettings.ItemID" value="{A5F3FD05-62D4-468A-BB54-6C9760F701A5}"></setting>
+      <setting name="Tealium.UtagDataMappingSettings.ItemID" value="{D77D079B-6A79-490D-B4F5-408D773FC3E8}"></setting>
+      <setting name="Tealium.Utag.Js.UriFormat" value="//tags.tiqcdn.com/utag/{0}/{1}/{2}/utag.js"></setting>
+      <setting name="Tealium.Utag.Sync.Js.UriFormat" value="//tags.tiqcdn.com/utag/{0}/{1}/{2}/utag.sync.js"></setting>
+    </settings>
+  </sitecore>
+</configuration>
