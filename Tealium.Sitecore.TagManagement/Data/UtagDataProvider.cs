@@ -38,7 +38,18 @@ namespace Tealium.Sitecore.TagManagement.Data
                 var utagData = new Dictionary<string, string>();
 
                 var tealiumSettings = SettingsProvider.TealiumSettings;
-                var computedFieldMapper = TealiumFactory.ComputedFieldMapper;
+
+                // Setup 'Custom UDO Type' computed field mapper
+                IComputedFieldMapper computedFieldMapper = null;
+                try
+                {
+                    computedFieldMapper = TealiumFactory.ComputedFieldMapper;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(string.Format("[UtagDataProvider]: Computed Fields Mapper - Custom UDO Type - threw unhandled exception: {0}", ex.Message), ex, this);
+                }
+
                 var mapping = MappingsProvider.Mapping;
 
                 var item = Context.Item;
