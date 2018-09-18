@@ -143,7 +143,10 @@
 		{
 			get
 			{
-				if (_computedFieldMapper == null)
+                // Check to see if the custom UDO type is enabled
+                var customUDOTypeEnabled = SettingsProvider.TealiumSettings.EnableCustomUdo;
+
+                if (customUDOTypeEnabled && _computedFieldMapper == null)
 				{
 					lock (_computedSync)
 					{
@@ -156,9 +159,16 @@
 							}
 
 							var type = Type.GetType(typeQualifiedString);
-							_computedFieldMapper = (IComputedFieldMapper)Activator.CreateInstance(type);
-						}
-					}
+                            try
+                            {
+                                _computedFieldMapper = (IComputedFieldMapper)Activator.CreateInstance(type);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw ex;
+                            }
+                        }
+                    }
 				}
 
 				return _computedFieldMapper;
