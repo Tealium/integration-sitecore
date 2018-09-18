@@ -132,14 +132,22 @@ namespace Tealium.Sitecore.TagManagement.Settings
 				if (!_settings.ContainsKey(key))
                 {
                     var defaultSettingsItem = Sc.Context.Database.GetItem(TealiumTealiumSettingsItemID);
-					var siteSpecificSettingItems = defaultSettingsItem.GetChildren().Select(x => new TealiumSettings(x)).ToArray();
 
-					_settings.Add(key, siteSpecificSettingItems.Any(x => x.WebsiteName == contextSiteName)
-			            ? siteSpecificSettingItems.First(x => x.WebsiteName == contextSiteName)
-			            : new TealiumSettings(defaultSettingsItem));
+                    if (null != defaultSettingsItem)
+                    {
+                        var siteSpecificSettingItems = defaultSettingsItem.GetChildren().Select(x => new TealiumSettings(x)).ToArray();
+
+                        _settings.Add(key, siteSpecificSettingItems.Any(x => x.WebsiteName == contextSiteName)
+                            ? siteSpecificSettingItems.First(x => x.WebsiteName == contextSiteName)
+                            : new TealiumSettings(defaultSettingsItem));
+                    }
+                    else
+                    {
+                        throw new ConfigurationException(string.Format("Tealium settings not published?  Cannot find value in database '{0}' for item '{1}'", Sc.Context.Database.Name, TealiumTealiumSettingsItemID));
+                    }
                 }
 
-				return _settings[key];
+                return _settings[key];
             }
         }
 
