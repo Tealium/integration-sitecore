@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Web;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Sitecore;
 using Sitecore.Diagnostics;
 using Tealium.Sitecore.TagManagement.Data;
@@ -53,30 +56,35 @@ namespace Tealium.Sitecore.TagManagement
             }
 
             var sb = new StringBuilder("");
-			
-			sb.AppendLine("<script type=\"text/javascript\">");
-			sb.AppendLine("var utag_data = {");
+            sb.AppendLine("<script type=\"text/javascript\">");
 
             try
             {
+                // Parse JSON-formatted values back to objects to avoid double-escaping
+                var utagDataObject = new Dictionary<string, object>();
                 foreach (var utagData in DataProvider.UtagData)
                 {
-                    sb.AppendLine(string.Format("  {0}: {1},", utagData.Key, utagData.Value));
+                    try
+                    {
+                        utagDataObject[utagData.Key] = JToken.Parse(utagData.Value);
+                    }
+                    catch
+                    {
+                        // If parsing fails, treat as a literal value
+                        utagDataObject[utagData.Key] = utagData.Value;
+                    }
                 }
-				// Remove the last comma for proper JSON output
-				if (sb.ToString().LastIndexOf(',') > 0)
-				{
-					sb.Remove(sb.ToString().LastIndexOf(','), 1);
-				}
-				
+
+                // Serialize the entire object safely
+                var serializedData = JsonConvert.SerializeObject(utagDataObject);
+                sb.AppendLine("var utag_data = " + serializedData + ";");
             }
             catch (Exception ex)
             {
                 Log.Error("[TealliumManager]: " + ex.Message, ex, this);
+                sb.AppendLine("var utag_data = {};");
             }
 
-
-            sb.AppendLine("};");
             sb.AppendLine("</script>");
 
             sb.AppendLine(GenerateBodyScript());

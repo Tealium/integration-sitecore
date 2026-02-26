@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Sitecore;
 using Sitecore.Data;
 using Sitecore.Data.Items;
@@ -182,9 +183,17 @@ namespace Tealium.Sitecore.TagManagement.Data
 
         protected virtual void AddUtag(IDictionary<string, string> utagData, string paramName, object paramValue)
         {
-            var value = paramValue is IEnumerable && !(paramValue is string) && !(paramValue is IEnumerable<char>)
-                ? "[" + string.Join(",", ((IEnumerable)paramValue).Cast<object>().Select(x => "\"" + x.ToString() + "\"")) + "]" 
-                : "\"" + paramValue + "\"";
+            string value;
+
+            if (paramValue is IEnumerable && !(paramValue is string) && !(paramValue is IEnumerable<char>))
+            {
+                var list = ((IEnumerable)paramValue).Cast<object>().ToList();
+                value = JsonConvert.SerializeObject(list);
+            }
+            else
+            {
+                value = JsonConvert.SerializeObject(paramValue);
+            }
 
             utagData.Add(paramName, value);
         }
