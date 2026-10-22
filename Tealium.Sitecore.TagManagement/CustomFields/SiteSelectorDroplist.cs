@@ -1,5 +1,6 @@
 ﻿namespace Tealium.Sitecore.TagManagement.CustomFields
 {
+	using System.Web;
 	using System.Web.UI;
 	using System.Linq;
 
@@ -34,7 +35,8 @@
 				foreach (var site in configuredSites)
 				{
 					valueFound = valueFound || site == this.Value;
-					output.Write(@"<option value=""{0}"" {1}>{2}</option>", site, this.Value == site ? " selected=\"selected\"" : string.Empty, site);
+					var encodedSite = HttpUtility.HtmlEncode(site);
+					output.Write(@"<option value=""{0}"" {1}>{2}</option>", encodedSite, this.Value == site ? " selected=\"selected\"" : string.Empty, encodedSite);
 				}
 
 				if (!valueFound)
@@ -45,8 +47,9 @@
 
 			if (err != null)
 			{
-				output.Write("<optgroup label=\"" + err + "\">");
-				output.Write("<option value=\"" + this.Value + "\" selected=\"selected\">" + this.Value + "</option>");
+				var encodedValue = HttpUtility.HtmlEncode(this.Value);
+				output.Write("<optgroup label=\"" + HttpUtility.HtmlEncode(err) + "\">");
+				output.Write("<option value=\"" + encodedValue + "\" selected=\"selected\">" + encodedValue + "</option>");
 				output.Write("</optgroup>");
 			}
 
@@ -54,7 +57,7 @@
 
 			if (err != null)
 			{
-				output.Write("<div style=\"color:#999999;padding:2px 0px 0px 0px\">{0}</div>", err);
+				output.Write("<div style=\"color:#999999;padding:2px 0px 0px 0px\">{0}</div>", HttpUtility.HtmlEncode(err));
 			}
 		}
 

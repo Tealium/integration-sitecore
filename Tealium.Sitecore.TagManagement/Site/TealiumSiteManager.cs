@@ -26,12 +26,12 @@
 
 		public string ContextSiteName
 		{
-			get { return global::Sitecore.Context.Site.Name; }
+			get { return global::Sitecore.Context.Site != null ? global::Sitecore.Context.Site.Name : string.Empty; }
 		}
 
 		public string ContextLanguageName
 		{
-			get { return global::Sitecore.Context.Language.Name; }
+			get { return global::Sitecore.Context.Language != null ? global::Sitecore.Context.Language.Name : string.Empty; }
 		}
 
 		public IEnumerable<string> SitesToIgnore

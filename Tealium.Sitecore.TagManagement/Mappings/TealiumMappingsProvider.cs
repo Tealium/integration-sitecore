@@ -38,22 +38,32 @@ namespace Tealium.Sitecore.TagManagement.Mappings
 
 	            var uniqueKey = contextSiteName + "_" + contextLanguage;
 
-				if (!_mapping.ContainsKey(uniqueKey))
-                {
-                    var mappingSettingsItem = Context.Database.GetItem(SettingsProvider.TealiumUtagDataMappingSettingsItemID);
-					var siteSpecificMapping = mappingSettingsItem.GetChildren()
-						.Where(x => x.TemplateID == Const.TemplateIDs.UtagDataSiteMappingSettings)
-						.FirstOrDefault(x => string.Equals(x[Const.FieldIDs.MappingSettings.WebsiteName], contextSiteName, StringComparison.InvariantCultureIgnoreCase));
+				IMapping mapping;
+				if (_mapping.TryGetValue(uniqueKey, out mapping))
+				{
+					return mapping;
+				}
 
-	                if (siteSpecificMapping != null)
-	                {
-		                mappingSettingsItem = siteSpecificMapping;
-	                }
+				var mappingSettingsItem = Context.Database.GetItem(SettingsProvider.TealiumUtagDataMappingSettingsItemID);
+				if (mappingSettingsItem == null)
+				{
+					throw new InvalidOperationException(string.Format("Tealium utag data mapping settings not published?  Cannot find item '{0}' in database '{1}'", SettingsProvider.TealiumUtagDataMappingSettingsItemID, Context.Database.Name));
+				}
 
-	                _mapping.Add(uniqueKey, new Mapping(mappingSettingsItem)); 
-                }
+				var siteSpecificMapping = mappingSettingsItem.GetChildren()
+					.Where(x => x.TemplateID == Const.TemplateIDs.UtagDataSiteMappingSettings)
+					.FirstOrDefault(x => string.Equals(x[Const.FieldIDs.MappingSettings.WebsiteName], contextSiteName, StringComparison.InvariantCultureIgnoreCase));
 
-				return _mapping[uniqueKey];
+				if (siteSpecificMapping != null)
+				{
+					mappingSettingsItem = siteSpecificMapping;
+				}
+
+				// the indexer never throws when two requests build the same entry
+				mapping = new Mapping(mappingSettingsItem);
+				_mapping[uniqueKey] = mapping;
+
+				return mapping;
             }
         }
 

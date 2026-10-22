@@ -103,9 +103,25 @@ namespace Tealium.Sitecore.TagManagement.Mappings
             foreach (var templateMappingItem in mappingSettingsItem.GetChildren().Where(x => x.TemplateID == Const.TemplateIDs.UtagDataTemplateMapping))
             {
                 var templateID = templateMappingItem.Fields[Const.FieldIDs.TemplateMapping.MappingTemplate].GetIdValue();
-                if (templateID != ID.Null)
+                if (templateID == ID.Null)
                 {
-                    UtagTemplateMappings.Add(templateID, templateMappingItem.Fields[Const.FieldIDs.TemplateMapping.CustomParameters].GetNameValueCollection());
+                    continue;
+                }
+
+                var parameters = templateMappingItem.Fields[Const.FieldIDs.TemplateMapping.CustomParameters].GetNameValueCollection();
+
+                // several mapping items for the same template are merged
+                IDictionary<string, object> existing;
+                if (UtagTemplateMappings.TryGetValue(templateID, out existing))
+                {
+                    foreach (var parameter in parameters)
+                    {
+                        existing[parameter.Key] = parameter.Value;
+                    }
+                }
+                else
+                {
+                    UtagTemplateMappings.Add(templateID, parameters);
                 }
             }
         }

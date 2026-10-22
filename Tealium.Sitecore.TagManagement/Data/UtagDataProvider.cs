@@ -54,9 +54,14 @@ namespace Tealium.Sitecore.TagManagement.Data
 
                 var item = Context.Item;
 
+                // pages without a context item (e.g. some MVC routes) get the
+                // custom parameters and computed fields only
                 AddCommonParameters(item, mapping, utagData);
 
-                AddMappedParameters(item, mapping, utagData);
+                if (item != null)
+                {
+                    AddMappedParameters(item, mapping, utagData);
+                }
 
                 if (tealiumSettings.EnableCustomUdo && computedFieldMapper != null)
                 {
@@ -83,6 +88,12 @@ namespace Tealium.Sitecore.TagManagement.Data
 
         protected virtual void AddCommonParameters(Item item, IMapping mapping, IDictionary<string, string> utagData)
         {
+            if (item == null)
+            {
+                AddCustomParameters(mapping, utagData);
+                return;
+            }
+
             if (mapping.AddItemId)
             {
                 AddUtag(utagData, "item_id", item.ID.ToString());
@@ -113,6 +124,11 @@ namespace Tealium.Sitecore.TagManagement.Data
                 AddUtag(utagData, "item_template_name", item.TemplateName);
             }
 
+            AddCustomParameters(mapping, utagData);
+        }
+
+        protected virtual void AddCustomParameters(IMapping mapping, IDictionary<string, string> utagData)
+        {
             foreach (var customParam in mapping.CustomParameters)
             {
                 if (!utagData.ContainsKey(customParam.Key))
@@ -143,9 +159,13 @@ namespace Tealium.Sitecore.TagManagement.Data
                 var splittedFieldName = name.Split(new[] {"->"}, StringSplitOptions.RemoveEmptyEntries);
 
                 var fieldName = splittedFieldName.Length == 2 ? splittedFieldName[0] : name;
-                var fieldValue = item[fieldName];
+                var fieldValue = item[fieldName] ?? string.Empty;
 
-                var splittedValue = fieldValue.Split(new[] {"|", ","}, StringSplitOptions.RemoveEmptyEntries).ToArray();
+                // list fields separate values with "|"; text must not be split on
+                // commas, so commas only separate values when they are all item IDs
+                var splittedValue = fieldValue.Split(new[] {"|"}, StringSplitOptions.RemoveEmptyEntries)
+                    .SelectMany(x => SplitIdList(x))
+                    .ToArray();
 
                 if (splittedFieldName.Length == 2)
                 {
@@ -180,13 +200,26 @@ namespace Tealium.Sitecore.TagManagement.Data
             }
         }
 
+        private static IEnumerable<string> SplitIdList(string value)
+        {
+            var parts = value.Split(new[] {","}, StringSplitOptions.RemoveEmptyEntries);
+            return parts.Length > 1 && parts.All(x => ID.IsID(x.Trim()))
+                ? parts.Select(x => x.Trim())
+                : new[] {value};
+        }
+
+        /// <summary>
+        /// Adds a utag value, encoded as a JavaScript literal. A later value for the
+        /// same name replaces an earlier one.
+        /// </summary>
         protected virtual void AddUtag(IDictionary<string, string> utagData, string paramName, object paramValue)
         {
-            var value = paramValue is IEnumerable && !(paramValue is string) && !(paramValue is IEnumerable<char>)
-                ? "[" + string.Join(",", ((IEnumerable)paramValue).Cast<object>().Select(x => "\"" + x.ToString() + "\"")) + "]" 
-                : "\"" + paramValue + "\"";
+            if (string.IsNullOrEmpty(paramName))
+            {
+                return;
+            }
 
-            utagData.Add(paramName, value);
+            utagData[paramName] = UtagValueEncoder.Encode(paramValue);
         }
 
         protected bool InheritedFrom(Item item, ID mappedTemplateId)
@@ -204,23 +237,30 @@ namespace Tealium.Sitecore.TagManagement.Data
             return CheckBaseTemplates(templates, item.Template, mappedTemplateId);
         }
 
+        /// <summary>
+        /// Checks every base template, not just the first branch, and visits each
+        /// template once so that circular inheritance can't loop forever.
+        /// </summary>
         protected static bool CheckBaseTemplates(IDictionary<ID, ID> templates, TemplateItem template, ID mappedTemplateId)
         {
             foreach (var baseTemplateItem in template.BaseTemplates)
             {
-                if (!templates.ContainsKey(baseTemplateItem.ID))
+                if (baseTemplateItem == null || templates.ContainsKey(baseTemplateItem.ID))
                 {
-                    templates.Add(baseTemplateItem.ID, baseTemplateItem.ID);
+                    continue;
                 }
+
+                templates.Add(baseTemplateItem.ID, baseTemplateItem.ID);
 
                 if (baseTemplateItem.ID == mappedTemplateId)
                 {
                     return true;
                 }
 
-                if (baseTemplateItem.ID != TemplateIDs.StandardTemplate)
+                if (baseTemplateItem.ID != TemplateIDs.StandardTemplate
+                    && CheckBaseTemplates(templates, baseTemplateItem, mappedTemplateId))
                 {
-                    return CheckBaseTemplates(templates, baseTemplateItem, mappedTemplateId);
+                    return true;
                 }
             }
 

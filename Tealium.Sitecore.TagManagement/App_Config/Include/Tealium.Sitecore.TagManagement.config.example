@@ -3,7 +3,7 @@ Purpose: This include file contains settings for the Tealium.Sitecore.TagManagem
 -->
 <configuration xmlns:patch="http://www.sitecore.net/xmlconfig/">
   <sitecore>
-    <eventsx>
+    <events>
       <event name="publish:end">
         <handler type="Tealium.Sitecore.TagManagement.Events.PublishEnd, Tealium.Sitecore.TagManagement" method="Refresh" />
       </event>
@@ -17,7 +17,7 @@ Purpose: This include file contains settings for the Tealium.Sitecore.TagManagem
       <event name="publish:complete:remote">
         <handler type="Tealium.Sitecore.TagManagement.Events.PublishEnd, Tealium.Sitecore.TagManagement" method="Refresh" />
       </event>
-    </eventsx>
+    </events>
 
     <settings>
       <setting name="Tealium.DataProvider" value="Tealium.Sitecore.TagManagement.Data.UtagDataProvider, Tealium.Sitecore.TagManagement"></setting>

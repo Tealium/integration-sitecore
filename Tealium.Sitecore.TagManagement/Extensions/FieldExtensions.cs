@@ -11,18 +11,25 @@ namespace Tealium.Sitecore.TagManagement.Extensions
     {
         public static bool GetBoolValue(this Field field)
         {
-            return field.Value == "1";
+            return field != null && field.Value == "1";
         }
 
         public static IDictionary<string, object> GetNameValueCollection(this Field field)
         {
             var collection = new Dictionary<string, object>(); 
 
-            var namevaluePairsString = HttpUtility.UrlDecode(field.Value).Split(new[] {"&"}, StringSplitOptions.RemoveEmptyEntries);
+            if (field == null || string.IsNullOrEmpty(field.Value))
+            {
+                return collection;
+            }
+
+            // split before decoding, so encoded "&" and "=" inside values survive
+            var namevaluePairsString = field.Value.Split(new[] {"&"}, StringSplitOptions.RemoveEmptyEntries);
             foreach (var pairString in namevaluePairsString)
             {
-                var pair = pairString.Split(new[] {"="}, StringSplitOptions.RemoveEmptyEntries);
-                if (pair.Length == 2 && !collection.ContainsKey(pair[0]))
+                var rawPair = pairString.Split(new[] {'='}, 2);
+                var pair = rawPair.Select(HttpUtility.UrlDecode).ToArray();
+                if (pair.Length == 2 && pair[0].Length > 0 && pair[1].Length > 0 && !collection.ContainsKey(pair[0]))
                 {
                     if (pair[1].Split(new[] {"|", ","}, StringSplitOptions.RemoveEmptyEntries).Length > 1)
                     {
@@ -40,7 +47,7 @@ namespace Tealium.Sitecore.TagManagement.Extensions
 
         public static ID GetIdValue(this Field field)
         {
-            if (ID.IsID(field.Value))
+            if (field != null && ID.IsID(field.Value))
             {
                 return new ID(field.Value);
             }
