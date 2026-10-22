@@ -21,6 +21,7 @@
 		private static IUtagDataProvider _utagDataProvider;
 		private static ITealiumManager _manager;
 		private static IComputedFieldMapper _computedFieldMapper;
+		private static string _failedComputedFieldMapperType;
 
 		public static ISiteManager SiteManager
 		{
@@ -153,20 +154,24 @@
 						if (_computedFieldMapper == null)
 						{
 							var typeQualifiedString = SettingsProvider.TealiumSettings.CustomUdoType;
-							if (string.IsNullOrEmpty(typeQualifiedString))
+							if (string.IsNullOrEmpty(typeQualifiedString)
+								|| typeQualifiedString == _failedComputedFieldMapperType)
 							{
 								return null;
 							}
 
-							var type = Type.GetType(typeQualifiedString);
-                            try
-                            {
-                                _computedFieldMapper = (IComputedFieldMapper)Activator.CreateInstance(type);
-                            }
-                            catch (Exception ex)
-                            {
-                                throw ex;
-                            }
+							try
+							{
+								var type = Type.GetType(typeQualifiedString, true);
+								_computedFieldMapper = (IComputedFieldMapper)Activator.CreateInstance(type);
+							}
+							catch (Exception ex)
+							{
+								// remembered so that the error is logged once, not on every request
+								_failedComputedFieldMapperType = typeQualifiedString;
+								global::Sitecore.Diagnostics.Log.Error(string.Format("[TealiumFactory]: Custom UDO type '{0}' could not be created: {1}", typeQualifiedString, ex.Message), ex, typeof(TealiumFactory));
+								return null;
+							}
                         }
                     }
 				}

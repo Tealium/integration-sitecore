@@ -81,12 +81,12 @@
         private void InitSettings(BaseItem settingsItem)
         {
             Enable = settingsItem.Fields[Const.FieldIDs.TealiumSettings.Enable].GetIdValue() == Const.Options.Enabled;
-            Account = settingsItem.Fields[Const.FieldIDs.TealiumSettings.Account].Value;
-            Profile = settingsItem.Fields[Const.FieldIDs.TealiumSettings.Profile].Value;
-            Environment = settingsItem.Fields[Const.FieldIDs.TealiumSettings.Environment].Value;
+            Account = settingsItem[Const.FieldIDs.TealiumSettings.Account];
+            Profile = settingsItem[Const.FieldIDs.TealiumSettings.Profile];
+            Environment = settingsItem[Const.FieldIDs.TealiumSettings.Environment];
             EnableUtagSyncJs = settingsItem.Fields[Const.FieldIDs.TealiumSettings.EnableUtagSyncJs].GetBoolValue();
             EnableCustomUdo = settingsItem.Fields[Const.FieldIDs.TealiumSettings.EnableCustomUDO].GetBoolValue();
-            CustomUdoType = settingsItem.Fields[Const.FieldIDs.TealiumSettings.CustomUDOType].Value;
+            CustomUdoType = settingsItem[Const.FieldIDs.TealiumSettings.CustomUDOType];
             WebsiteName = settingsItem[Const.FieldIDs.TealiumSettings.WebsiteName];
         }
     }

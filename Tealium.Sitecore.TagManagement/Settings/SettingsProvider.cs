@@ -129,25 +129,34 @@ namespace Tealium.Sitecore.TagManagement.Settings
 	            var contextSiteName = TealiumFactory.SiteManager.ContextSiteName;
 	            var key = contextSiteName + "_" + contextLanguage;
 
-				if (!_settings.ContainsKey(key))
-                {
-                    var defaultSettingsItem = Sc.Context.Database.GetItem(TealiumTealiumSettingsItemID);
+				ITealiumSettings settings;
+				if (_settings.TryGetValue(key, out settings))
+				{
+					return settings;
+				}
 
-                    if (null != defaultSettingsItem)
-                    {
-                        var siteSpecificSettingItems = defaultSettingsItem.GetChildren().Select(x => new TealiumSettings(x)).ToArray();
+				var database = Sc.Context.Database;
+				if (database == null)
+				{
+					throw new ConfigurationException("Tealium settings cannot be read: there is no context database.");
+				}
 
-                        _settings.Add(key, siteSpecificSettingItems.Any(x => x.WebsiteName == contextSiteName)
-                            ? siteSpecificSettingItems.First(x => x.WebsiteName == contextSiteName)
-                            : new TealiumSettings(defaultSettingsItem));
-                    }
-                    else
-                    {
-                        throw new ConfigurationException(string.Format("Tealium settings not published?  Cannot find value in database '{0}' for item '{1}'", Sc.Context.Database.Name, TealiumTealiumSettingsItemID));
-                    }
-                }
+				var defaultSettingsItem = database.GetItem(TealiumTealiumSettingsItemID);
 
-                return _settings[key];
+				if (null == defaultSettingsItem)
+				{
+					throw new ConfigurationException(string.Format("Tealium settings not published?  Cannot find value in database '{0}' for item '{1}'", database.Name, TealiumTealiumSettingsItemID));
+				}
+
+				var siteSpecificSettingItems = defaultSettingsItem.GetChildren().Select(x => new TealiumSettings(x)).ToArray();
+
+				settings = siteSpecificSettingItems.Any(x => x.WebsiteName == contextSiteName)
+					? siteSpecificSettingItems.First(x => x.WebsiteName == contextSiteName)
+					: new TealiumSettings(defaultSettingsItem);
+
+				// the indexer never throws when two requests build the same entry
+				_settings[key] = settings;
+				return settings;
             }
         }
 
